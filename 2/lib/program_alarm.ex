@@ -25,13 +25,47 @@ defmodule ProgramAlarm do
   end
 
   @doc """
+  Solves the second part of the problem given the path of the input file.
+  """
+  @spec part_two(String.t()) :: String.t()
+  def part_two(input_file) do
+    memory =
+      input_file
+      |> File.read!()
+      |> String.trim()
+      |> String.split(",")
+      |> Memory.initialize()
+
+    values = for noun <- Range.new(0, 99), verb <- Range.new(0, 99), do: {noun, verb}
+
+    case recursive_part_two(values, memory, 19690720) do
+      {noun, verb} -> (100 * noun) + verb
+        nil -> IO.puts("Error finding final solution!")
+    end
+  end
+
+  def recursive_part_two([], _, _), do: nil
+  def recursive_part_two([{noun, verb} | values], memory, objetive) do
+    result =
+      memory
+      |> Memory.update(1, noun)
+      |> Memory.update(2, verb)
+      |> process()
+      |> Map.get(:state)
+      |> Map.get(0)
+
+    case result == objetive do
+      true -> {noun, verb}
+      false -> recursive_part_two(values, memory, objetive)
+    end
+  end
+
+  @doc """
   Processes the memory contents and returns the final memory contents after processing.
   """
   @spec process(Memory.t(), Integer.t()) :: Memory.t()
   def process(memory, pointer \\ 0)
   def process(memory, pointer) do
-    IO.inspect(memory.state)
-
     case Memory.at(memory, pointer) do
       1 -> process(add(memory, pointer + 1), pointer + 4)
       2 -> process(multiply(memory, pointer + 1), pointer + 4)
