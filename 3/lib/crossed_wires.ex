@@ -17,6 +17,18 @@ defmodule CrossedWires do
     |> closest_point()
   end
 
+  @doc """
+  Solves the second part of the challenge.
+  """
+  @spec part_two(String.t()) :: Integer.t()
+  def part_two(input_file) do
+    input_file
+    |> File.read!()
+    |> String.trim()
+    |> String.split("\n")
+    |> fewest_steps()
+  end
+
   @spec closest_point([String.t()]) :: Integer.t()
   def closest_point([first_path | [second_path | []]]) do
     first_coordinates = coordinates(first_path) |> MapSet.new()
@@ -26,6 +38,27 @@ defmodule CrossedWires do
     |> Enum.filter(fn coordinate -> coordinate in first_coordinates end)
     |> Enum.map(&distance/1)
     |> Enum.filter(fn distance -> distance != 0 end)
+    |> Enum.sort()
+    |> List.first()
+  end
+
+  @spec fewest_steps([String.t()]) :: Integer.t()
+  def fewest_steps([first_path | [second_path | []]]) do
+    # This is kind of a shitty solution. We're first generating the coordinates that both the first and second
+    # wire will travel through. We're reversing the result from `coordinates/1` because that way we have the ordered
+    # coordinates as travelled by the wires.
+    # Lastly we still need to use `MapSet.new/1` because it's way faster to do the `in` operation on a MapSet instead
+    # of on a list.
+    first_coordinates = coordinates(first_path) |> Enum.reverse()
+    second_coordinates = coordinates(second_path) |> Enum.reverse()
+    set_coordinates = MapSet.new(first_coordinates)
+
+    crossed_coordinates =
+      second_coordinates
+      |> Enum.filter(fn coordinate -> coordinate in set_coordinates end)
+
+    crossed_coordinates
+    |> Enum.map(fn coordinate -> steps(first_coordinates, coordinate) + steps(second_coordinates, coordinate) end)
     |> Enum.sort()
     |> List.first()
   end
@@ -74,5 +107,17 @@ defmodule CrossedWires do
       |> Enum.map(fn step -> operation.(coordinate, step) end)
       |> Enum.reverse()
     {head, [head | tail]}
+  end
+
+  @doc """
+  Calculates the number of steps a given wire takes in order to reach a certain coordinate
+  considering that the provided list of `coordinates` is ordered by the way they were travelled.
+  """
+  @spec steps([coordinate], coordinate) :: Integer.t()
+  def steps(coordinates, destination) do
+    coordinates
+    |> Enum.take_while(fn coordinate -> coordinate != destination end)
+    |> length()
+    |> Kernel.+(1)
   end
 end
