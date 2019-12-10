@@ -13,4 +13,16 @@ defmodule SecureContainerTest do
   test "123789 is not a valid password" do
     assert SecureContainer.valid?("123789") == false
   end
+
+  test "112233 is a valid password" do
+    assert SecureContainer.extra_valid?("112233") == true
+  end
+
+  test "123444 is not a valid password" do
+    assert SecureContainer.extra_valid?("123444") == false
+  end
+
+  test "111122 is a valid password" do
+    assert SecureContainer.extra_valid?("111122") == true
+  end
 end
