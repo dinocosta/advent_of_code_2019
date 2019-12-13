@@ -76,26 +76,6 @@ defmodule ProgramAlarm do
   def add(memory, pointer), do: execute_operation(memory, pointer, pointer + 1, pointer + 2, &Kernel.+/2)
   def multiply(memory, pointer), do: execute_operation(memory, pointer, pointer + 1, pointer + 2, &Kernel.*/2)
 
-  @doc """
-  Given the memory and two indexes performs the addition of the values in that memory positions,
-  while saving the result of the operation at the provided `output_position`.
-  """
-  @spec add(Memory.t(), Integer.t(), Integer.t(), Integer.t()) :: Memory.t()
-  def add(memory, first_position, second_position, output_position) do
-    result = Memory.at(memory, first_position) + Memory.at(memory, second_position)
-    Memory.update(memory, output_position, result)
-  end
-
-  @doc """
-  Given the memory and two indexes performs the multiplication of the values in that memory positions,
-  while saving the result of the operation at the provided `output_position`.
-  """
-  @spec multiply(Memory.t(), Integer.t(), Integer.t(), Integer.t()) :: Memory.t()
-  def multiply(memory, first_position, second_position, output_position) do
-    result = Memory.at(memory, first_position) * Memory.at(memory, second_position)
-    Memory.update(memory, output_position, result)
-  end
-
   @spec execute_operation(Memory.t(), Integer.t(), Integer.t(), Integer.t(), Function.t()) :: Memory.t()
   def execute_operation(memory, first_position, second_position, output_position, function) do
     first_value = Memory.at(memory, Memory.at(memory, first_position))
