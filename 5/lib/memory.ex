@@ -52,4 +52,15 @@ defmodule Memory do
   """
   @spec move_pointer(__MODULE__.t(), Integer.t()) :: __MODULE__.t()
   def move_pointer(memory, units), do: %__MODULE__{ memory | pointer: memory.pointer + units }
+
+  @doc """
+  Sets the memory pointer to the provided `position`.
+
+  ## Example
+  #
+      iex> Memory.set_pointer(%Memory{state: %{}, pointer: 0}, 24)
+      %Memory{state: %{}, pointer: 24}
+  """
+  @spec set_pointer(__MODULE__.t(), Integer.t()) :: __MODULE__.t()
+  def set_pointer(memory, position), do: %__MODULE__{ memory | pointer: position }
 end
