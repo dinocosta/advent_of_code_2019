@@ -38,6 +38,27 @@ defmodule SpaceImageFormat do
   end
 
   @doc """
+  Given the input file for the day solves the second part of the challenge.
+  """
+  @spec part_two(String.t()) :: Integer.t()
+  def part_two(input_file) do
+    final_layer =
+      input_file
+      |> File.read!()
+      |> String.trim()
+      |> layers(@width, @height)
+      |> build_final_layer()
+
+    final_layer
+    |> Enum.map(fn pixels -> Enum.map(pixels, &pixel_to_char/1) end)
+    |> Enum.map(fn pixels -> IO.puts("#{pixels}") end)
+  end
+
+  defp pixel_to_char(0), do: "  "
+  defp pixel_to_char(1), do: "██"
+  defp pixel_to_char(2), do: "  "
+
+  @doc """
   Generates the image layers given image data and the image `width` and `height`.
 
   # Example
@@ -69,4 +90,73 @@ defmodule SpaceImageFormat do
     layer
     |> Enum.reduce(0, fn numbers, count -> count + Enum.count(numbers, &(&1 == digit)) end)
   end
+
+  @doc """
+  Builds the final layer given the image layers.
+
+  # Example
+
+    iex> SpaceImageFormat.build_final_layer([[[0, 2], [2, 2]], [[1, 1], [2, 2]], [[2, 2], [1, 2]], [[0, 0], [0, 0]]])
+    [[0, 1], [1, 0]]
+  """
+  @spec build_final_layer(List.t()) :: List.t()
+  def build_final_layer(layers) do
+    height = layers |> List.first() |> length()
+    width = layers |> List.first() |> List.first() |> length()
+    final_layer = List.duplicate(List.duplicate(2, width), height)
+
+    layers
+    |> Enum.reduce(final_layer, fn current_layer, final_layer -> merge_layers(final_layer, current_layer) end)
+  end
+
+  @doc """
+  Merges two layers, given that the first one is the top one and the second one is below the top one.
+  Using the following rules:
+  - If a pixel is 2 and the bottom one is either 1 or 0 then the bottom one prevails.
+  - If the top pixel is either 0 or 1 no change is made.
+
+  # Example
+
+    iex> SpaceImageFormat.merge_layers([[2, 1], [0, 2]], [[0, 0], [1, 1]])
+    [[0, 1], [0, 1]]
+  """
+  @spec merge_layers(List.t(), List.t()) :: List.t()
+  def merge_layers(top, bottom) do
+    Enum.zip(top, bottom)
+    |> Enum.map(fn {top_pixels, bottom_pixels} -> merge_pixels(top_pixels, bottom_pixels) end)
+  end
+
+
+  @doc """
+  Merges two rows of pixels.
+
+  # Example
+
+    iex> SpaceImageFormat.merge_pixels([2, 1], [0, 0])
+    [0, 1]
+  """
+  @spec merge_pixels(List.t(), List.t()) :: List.t()
+  def merge_pixels(top, bottom) do
+    Enum.zip(top, bottom)
+    |> Enum.map(fn {top_pixel, bottom_pixel} -> merge_pixel(top_pixel, bottom_pixel) end)
+  end
+
+  @doc """
+  Merges two pixels, using the following rule.
+  - If `top` is 2 and `bottom` is also 2 then no change is made.
+  - If `top` is 2 and `bottom` is either 1 or 0, then `bottom` is returned.
+  - If `top` is either 1 or 0, then top is returned.
+
+  # Example
+
+    iex> SpaceImageFormat.merge_pixel(2, 0)
+    0
+    iex> SpaceImageFormat.merge_pixel(2, 2)
+    2
+    iex> SpaceImageFormat.merge_pixel(1, 0)
+    1
+  """
+  @spec merge_pixel(Integer.t(), Integer.t()) :: Integer.t()
+  def merge_pixel(top, _) when top in [0, 1], do: top
+  def merge_pixel(2, bottom), do: bottom
 end
